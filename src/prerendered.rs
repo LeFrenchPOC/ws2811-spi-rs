@@ -30,22 +30,21 @@ pub enum Error<E> {
 }
 
 pub mod devices {
-    pub struct Ws2812;
-    pub struct Sk6812w;
+    pub struct Ws2811;
 }
 
-pub struct Ws2812<'a, SPI, DEVICE = devices::Ws2812> {
+pub struct Ws2811<'a, SPI, DEVICE = devices::Ws2811> {
     spi: SPI,
     data: &'a mut [u8],
     index: usize,
     device: PhantomData<DEVICE>,
 }
 
-impl<'a, SPI, E> Ws2812<'a, SPI>
+impl<'a, SPI, E> Ws2811<'a, SPI>
 where
     SPI: FullDuplex<u8, Error = E>,
 {
-    /// Use ws2812 devices via spi
+    /// Use Ws2811 devices via spi
     ///
     /// The SPI bus should run within 2 MHz to 3.8 MHz
     ///
@@ -66,38 +65,11 @@ where
     }
 }
 
-impl<'a, SPI, E> Ws2812<'a, SPI, devices::Sk6812w>
+impl<'a, SPI, D, E> Ws2811<'a, SPI, D>
 where
     SPI: FullDuplex<u8, Error = E>,
 {
-    /// Use sk6812w devices via spi
-    ///
-    /// The SPI bus should run within 2.3 MHz to 3.8 MHz at least.
-    ///
-    /// You may need to look at the datasheet and your own hal to verify this.
-    ///
-    /// You need to provide a buffer `data`, whoose length is at least 12 * the
-    /// length of the led strip
-    ///
-    /// Please ensure that the mcu is pretty fast, otherwise weird timing
-    /// issues will occur
-    // The spi frequencies are just the limits, the available timing data isn't
-    // complete
-    pub fn new_sk6812w(spi: SPI, data: &'a mut [u8]) -> Self {
-        Self {
-            spi,
-            data,
-            index: 0,
-            device: PhantomData {},
-        }
-    }
-}
-
-impl<'a, SPI, D, E> Ws2812<'a, SPI, D>
-where
-    SPI: FullDuplex<u8, Error = E>,
-{
-    /// Write a single byte for ws2812 devices
+    /// Write a single byte for Ws2811 devices
     fn write_byte(&mut self, mut data: u8) -> Result<(), Error<E>> {
         // Send two bits in one spi byte. High time first, then the low time
         // The maximum for T0H is 500ns, the minimum for one bit 1063 ns.
@@ -141,13 +113,13 @@ where
     }
 }
 
-impl<'a, SPI, E> SmartLedsWrite for Ws2812<'a, SPI>
+impl<'a, SPI, E> SmartLedsWrite for Ws2811<'a, SPI>
 where
     SPI: FullDuplex<u8, Error = E>,
 {
     type Error = Error<E>;
     type Color = RGB8;
-    /// Write all the items of an iterator to a ws2812 strip
+    /// Write all the items of an iterator to a Ws2811 strip
     fn write<T, I>(&mut self, iterator: T) -> Result<(), Error<E>>
     where
         T: Iterator<Item = I>,
@@ -157,34 +129,9 @@ where
 
         for item in iterator {
             let item = item.into();
-            self.write_byte(item.g)?;
             self.write_byte(item.r)?;
-            self.write_byte(item.b)?;
-        }
-        self.send_data().map_err(|e| Error::Spi(e))
-    }
-}
-
-impl<'a, SPI, E> SmartLedsWrite for Ws2812<'a, SPI, devices::Sk6812w>
-where
-    SPI: FullDuplex<u8, Error = E>,
-{
-    type Error = Error<E>;
-    type Color = RGBW<u8, u8>;
-    /// Write all the items of an iterator to a ws2812 strip
-    fn write<T, I>(&mut self, iterator: T) -> Result<(), Error<E>>
-    where
-        T: Iterator<Item = I>,
-        I: Into<Self::Color>,
-    {
-        self.index = 0;
-
-        for item in iterator {
-            let item = item.into();
             self.write_byte(item.g)?;
-            self.write_byte(item.r)?;
             self.write_byte(item.b)?;
-            self.write_byte(item.a.0)?;
         }
         self.send_data().map_err(|e| Error::Spi(e))
     }

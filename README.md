@@ -1,11 +1,11 @@
-# Ws2812 driver for embedded-hal spi traits
+# Ws2811 driver for embedded-hal spi traits
+
+Fork of [ws2812-spi-rs](https://github.com/smart-leds-rs/ws2812-spi-rs)
 
 For usage with the [smart-leds](https://github.com/smart-leds-rs/smart-leds)
 crate.
 
-An embedded-hal driver for ws2812 leds using spi as the timing provider.
-
-![rainbow on stm32f0](./stm32f0_ws2812_spi_rainbow.gif)
+An embedded-hal driver for ws2811 leds using spi as the timing provider.
 
 It provides two variants:
 - The normal usage
@@ -59,6 +59,17 @@ perform as expected. (For more on exactly what is going on here, see [Hackaday |
 When opening an issue about wrong/strange data, it would help if you include
 your code (of course) and a capture of MOSI & SCK from an oscilloscope/a logic
 analyzer.
+
+## Author
+
+👤 **Le French POC**
+
+* Github: [@LeFrenchPOC](https://github.com/LeFrenchPOC)
+* Website: [https://www.lefrenchpoc.fr/](https://www.lefrenchpoc.fr/)
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
 
 ## License
 
