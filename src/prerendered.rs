@@ -130,8 +130,8 @@ where
         for item in iterator {
             let item = item.into();
             self.write_byte(item.r)?;
-            self.write_byte(item.g)?;
             self.write_byte(item.b)?;
+            self.write_byte(item.g)?;
         }
         self.send_data().map_err(|e| Error::Spi(e))
     }

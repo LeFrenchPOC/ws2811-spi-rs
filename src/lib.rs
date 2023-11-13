@@ -112,8 +112,8 @@ where
         for item in iterator {
             let item = item.into();
             self.write_byte(item.r)?;
-            self.write_byte(item.g)?;
             self.write_byte(item.b)?;
+            self.write_byte(item.g)?;
         }
         self.flush()?;
         // Now, resolve the offset we introduced at the beginning
