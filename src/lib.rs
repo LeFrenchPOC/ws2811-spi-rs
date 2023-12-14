@@ -32,10 +32,11 @@ pub const MODE: Mode = Mode {
 };
 
 pub mod devices {
-    pub struct Ws2811;
+    pub struct Ws2811Rgb;
+    pub struct Ws2811Rbg;
 }
 
-pub struct Ws2811<SPI, DEVICE = devices::Ws2811> {
+pub struct Ws2811<SPI, DEVICE = devices::Ws2811Rgb> {
     spi: SPI,
     device: PhantomData<DEVICE>,
 }
@@ -44,15 +45,35 @@ impl<SPI, E> Ws2811<SPI>
 where
     SPI: FullDuplex<u8, Error = E>,
 {
-    /// Use Ws2811 devices via spi
+    /// Use Ws2811 devices via spi RGB
     ///
-    /// The SPI bus should run within 2 MHz to 3.8 MHz
+    /// The SPI bus should run within 1.6 MHz to 3.2 MHz
     ///
     /// You may need to look at the datasheet and your own hal to verify this.
     ///
     /// Please ensure that the mcu is pretty fast, otherwise weird timing
     /// issues will occur
-    pub fn new(spi: SPI) -> Self {
+    pub fn new_rgb(spi: SPI) -> Self {
+        Self {
+            spi,
+            device: PhantomData {},
+        }
+    }
+}
+
+impl<SPI, E> Ws2811<SPI, devices::Ws2811Rbg>
+where
+    SPI: FullDuplex<u8, Error = E>,
+{
+    /// Use Ws2811 devices via spi RBG
+    ///
+    /// The SPI bus should run within 1.6 MHz to 3.2 MHz
+    ///
+    /// You may need to look at the datasheet and your own hal to verify this.
+    ///
+    /// Please ensure that the mcu is pretty fast, otherwise weird timing
+    /// issues will occur
+    pub fn new_rbg(spi: SPI) -> Self {
         Self {
             spi,
             device: PhantomData {},
@@ -90,6 +111,39 @@ where
 }
 
 impl<SPI, E> SmartLedsWrite for Ws2811<SPI>
+where
+    SPI: FullDuplex<u8, Error = E>,
+{
+    type Error = E;
+    type Color = RGB8;
+    /// Write all the items of an iterator to a Ws2811 strip
+    fn write<T, I>(&mut self, iterator: T) -> Result<(), E>
+    where
+        T: Iterator<Item = I>,
+        I: Into<Self::Color>,
+    {
+        // We introduce an offset in the fifo here, so there's always one byte in transit
+        // Some MCUs (like the stm32f1) only a one byte fifo, which would result
+        // in overrun error if two bytes need to be stored
+        block!(self.spi.send(0))?;
+        if cfg!(feature = "mosi_idle_high") {
+            self.flush()?;
+        }
+
+        for item in iterator {
+            let item = item.into();
+            self.write_byte(item.r)?;
+            self.write_byte(item.g)?;
+            self.write_byte(item.b)?;
+        }
+        self.flush()?;
+        // Now, resolve the offset we introduced at the beginning
+        block!(self.spi.read())?;
+        Ok(())
+    }
+}
+
+impl<SPI, E> SmartLedsWrite for Ws2811<SPI, devices::Ws2811Rbg>
 where
     SPI: FullDuplex<u8, Error = E>,
 {

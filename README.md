@@ -10,7 +10,7 @@ An embedded-hal driver for ws2811 leds using spi as the timing provider.
 It provides two variants:
 - The normal usage
 
-  Your spi peripheral has to run betwee 2MHz and 3.8MHz & the SPI data is created on-the-fly.
+  Your spi peripheral has to run betwee 1.6MHz and 3.2MHz & the SPI data is created on-the-fly.
   This means that your core has to be reasonably fast (48 MHz should suffice).
 - Prerendered
 
