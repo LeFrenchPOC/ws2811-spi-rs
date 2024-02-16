@@ -125,7 +125,6 @@ where
         // We introduce an offset in the fifo here, so there's always one byte in transit
         // Some MCUs (like the stm32f1) only a one byte fifo, which would result
         // in overrun error if two bytes need to be stored
-        #[cfg(not(feature = "fifo_stm32f1"))]
         block!(self.spi.send(0))?;
 
         if cfg!(feature = "mosi_idle_high") {
@@ -140,9 +139,13 @@ where
         }
         self.flush()?;
         // Now, resolve the offset we introduced at the beginning
-        #[cfg(not(feature = "fifo_stm32f1"))]
-        block!(self.spi.read())?;
+        if cfg!(feature = "fifo_stm32f1") {
+            self.spi.read().ok();
+        } else {
+            block!(self.spi.read())?;
+        }
         
+
         Ok(())
     }
 }
