@@ -21,3 +21,4 @@ embedded-hal = "0.2.4"
 
 [features]
 mosi_idle_high = []
+fifo_stm32f1 = []
