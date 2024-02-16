@@ -1,6 +1,6 @@
 [package]
 name = "ws2811-spi"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Axel Chabot <axel.chabot@lefrenchpoc.fr>","David Sawatzke <david-sawatzke@users.noreply.github.com>"]
 edition = "2018"
 categories = [
