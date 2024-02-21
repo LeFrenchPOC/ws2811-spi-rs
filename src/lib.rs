@@ -144,7 +144,6 @@ where
         } else {
             block!(self.spi.read())?;
         }
-        
 
         Ok(())
     }
@@ -178,7 +177,11 @@ where
         }
         self.flush()?;
         // Now, resolve the offset we introduced at the beginning
-        block!(self.spi.read())?;
+        if cfg!(feature = "fifo_stm32f1") {
+            self.spi.read().ok();
+        } else {
+            block!(self.spi.read())?;
+        }
         Ok(())
     }
 }
